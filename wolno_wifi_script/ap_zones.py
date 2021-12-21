@@ -1,3 +1,5 @@
+# file to sort networks to zones on map (index of every dict is number of zone id)
+
 ap_zones = [
     {'pef-1-e1-2': 0, 'pef-1-e1-3': 0, 'pef-1-e1-4': 0},
     {'pef-1-e2-2': 0, 'pef-1-e2-3': 0, 'pef-1-e2-4': 0},
