@@ -13,7 +13,6 @@ from ap_zones import ap_zones
 
 """
 CZ:
-
 struktura souborů:
 Jmeno_AP
 Uptime
@@ -36,10 +35,7 @@ sit_B
 sit_C
 Timestamp data z controlleru
 Timestamp vytvoreni souboru pro dane ap
-
-
 EN:
-
 API response structure:
 AP_Name (Hostname)
 AP_Uptime 
@@ -62,7 +58,6 @@ network_B
 network_C
 data z controlleru (str, const)
 vytvoreni souboru pro dane ap creating: (str, const) timestamp (datetime)
-
 """
 
 
@@ -87,7 +82,7 @@ def main():
             counter_ap += 1
         response = http.request('GET', f'http://192.168.80.14/apcka2/{name}')
         html = response.data.decode('utf8')
-        networks_counts = list(chain(x.split('\n')[1:-1] for x in html.split(':')[3:7]))
+        networks_counts = list(chain(x.split('\n')[1:-1] for x in html.split(':')[1:5]))
         g2, g5 = tuple(dict(zip(networks_counts[x], networks_counts[y])) for x, y in [
             (1, 3),
             (0, 2),
@@ -174,11 +169,14 @@ def main():
         # summ data and put it in DB
         for index, ap in enumerate(ap_zones):
             sum_of_users_in_zone = sum(ap.values())
-            insert_statement = wifi_users.insert().values(
-                connUsers=sum_of_users_in_zone,
-                timemark=actual_date_time_zone,
-                sectorId=index + 1
-            )
+            try:
+                insert_statement = wifi_users.insert().values(
+                    connUsers=sum_of_users_in_zone,
+                    timemark=actual_date_time_zone,
+                    sectorId=index + 1
+                )
+            except Exception as exc:
+                logging.exception(f'{zone_name}, {exc}\n\n')
             conn.execute(insert_statement)
 
     print('Done')
