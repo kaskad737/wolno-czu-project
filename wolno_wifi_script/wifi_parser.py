@@ -1,16 +1,18 @@
 import bs4 as bs
 import urllib3
+import re
 import os
 import datetime as d
 import pytz
 import sqlalchemy
+import logging
+from itertools import chain
 from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, String, MetaData, Integer, DateTime, Identity, BigInteger
 from ap_zones import ap_zones
 
-# Structure of incoming data which we parse
-
 """
+CZ:
 
 struktura souborů:
 Jmeno_AP
@@ -35,6 +37,32 @@ sit_C
 Timestamp data z controlleru
 Timestamp vytvoreni souboru pro dane ap
 
+
+EN:
+
+API response structure:
+AP_Name (Hostname)
+AP_Uptime 
+AP_Model
+Networks_5G: (str, const)
+A
+B
+C
+Networks_2.4G: (str, const)
+A
+B
+C
+Pocet_lidi_5G: (str, const)
+network_A
+network_B
+network_C
+Pocet_lidi_2.4G: (str, const)
+network_A
+network_B
+network_C
+data z controlleru (str, const)
+vytvoreni souboru pro dane ap creating: (str, const) timestamp (datetime)
+
 """
 
 
@@ -44,53 +72,41 @@ def main():
     wifi_zones = {}
 
     http = urllib3.PoolManager(num_pools=1)
-
     # we make initial request to main page
-
     response = http.request('GET', 'http://192.168.80.14/apcka2')
     html = response.data.decode('utf8')
     soup = bs.BeautifulSoup(html, 'html.parser')
-
     # when we getting names of all zones
-
     for link in soup.find_all('a'):
-
-        # Checking if AP's whitch we need is in building PEF (pef, cems) and adding to list of names of APs
-
-        if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get('href')):
+        if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get(
+                'href')):  # Checking if AP's whitch we need is in building PEF (pef, cems) and adding to list of names of APs
             zones.append(link.get('href'))
-
     # when we make requests using name of zones to get data for each zone
-
     for name in zones:
-        number_of_users_in_each_network = []  # list for collecting number of users for each type of network
         if name:
             counter_ap += 1
         response = http.request('GET', f'http://192.168.80.14/apcka2/{name}')
         html = response.data.decode('utf8')
-        for index, line in enumerate(html.split('\n')):
-            # check if in list only digit element
-            if line.isdigit():
-                # exclude type of AP number
-                if index != 2:
-                    number_of_users_in_each_network.append(line)
-        wifi_zones[name] = number_of_users_in_each_network
+        networks_counts = list(chain(x.split('\n')[1:-1] for x in html.split(':')[3:7]))
+        g2, g5 = tuple(dict(zip(networks_counts[x], networks_counts[y])) for x, y in [
+            (1, 3),
+            (0, 2),
+        ])
+
+        wifi_zones[name] = {'2.4G': g2, '5G': g5}
+
     # print(f'TOTAL AP\'s {counter_ap}')
 
-    # getting local environment variables
     DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(
         os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
-    # use local variables to create db string to create db engine
     db_string = f'postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}'
 
     db = create_engine(db_string)
 
     meta = MetaData(db)
-    # our tables templates
-
-    # table to save all data
-    wifi_data = Table('wifi_data', meta,
+    # our table template
+    wifi_data = Table('wifi_data_test', meta,
                       Column('id', BigInteger, Identity(), primary_key=True),
                       Column('ssid', String),
                       Column('eduroam_5ghz', Integer),
@@ -107,8 +123,7 @@ def main():
 
                       Column('timemark', DateTime(timezone=True)))
 
-    # table to sort data to certain zones with id's on map
-    wifi_users = Table('wifi_users', meta,
+    wifi_users = Table('wifi_users_test', meta,
                        Column('id', BigInteger, Identity(), primary_key=True),
                        Column('connUsers', Integer),
                        Column('timemark', DateTime(timezone=True)),
@@ -124,52 +139,51 @@ def main():
             (pytz.utc.localize(d.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime(
             '%Y-%m-%d %H:%M:%S%z')
         # counting and sorting data and then put data into table
-        for zone, networks in wifi_zones.items():
-            networks = list(map(int, networks))
-            total_users = sum(networks)
-            if zone == 'pef-0-es12':
-                insert_statement = wifi_data.insert().values(ssid=zone, eduroam_5ghz=networks[0],
-                                                             czu_guest_5ghz=networks[1],
-                                                             czu_staff_5ghz=networks[2],
-                                                             pef_repro_5ghz=networks[3],
-                                                             eduroam_2_4ghz=networks[4],
-                                                             czu_guest_2_4ghz=networks[5],
-                                                             czu_staff_2_4ghz=networks[6],
-                                                             pef_repro_2_4ghz=networks[7],
+        for zone_name, zone_data in wifi_zones.items():
+            try:
+                # print(zone_name, zone_data)
+                total_users = sum(
+                    int(count)
+                    for _, by_network in zone_data.items()
+                    for _, by_band in by_network.items()
+                    for count in by_band if count.isdigit()
+                )
+                # print(total_users)
+            except Exception as exc:
+                logging.exception(f'{zone_name}, {exc}\n\n')
+            try:
+                insert_statement = wifi_data.insert().values(ssid=zone_name,
+                                                             eduroam_5ghz=zone_data['5G'].get('eduroam'),
+                                                             czu_guest_5ghz=zone_data['5G'].get('CZU-guest'),
+                                                             czu_staff_5ghz=zone_data['5G'].get('CZU-staff'),
+                                                             pef_repro_5ghz=zone_data['5G'].get('PEF-repro'),
+                                                             eduroam_2_4ghz=zone_data['2.4G'].get('eduroam'),
+                                                             czu_guest_2_4ghz=zone_data['2.4G'].get('CZU-guest'),
+                                                             czu_staff_2_4ghz=zone_data['2.4G'].get('CZU-staff'),
+                                                             pef_repro_2_4ghz=zone_data['2.4G'].get('PEF-repro'),
                                                              total_networks=total_users,
                                                              timemark=actual_date_time_zone)
-            elif zone == 'cems1-3-stoly-vytah-ap515-pef':
-                insert_statement = wifi_data.insert().values(ssid=zone,
-                                                             timemark=actual_date_time_zone)
-            else:
-                insert_statement = wifi_data.insert().values(ssid=zone, eduroam_5ghz=networks[0],
-                                                             czu_guest_5ghz=networks[1],
-                                                             czu_staff_5ghz=networks[2],
-                                                             eduroam_2_4ghz=networks[3],
-                                                             czu_guest_2_4ghz=networks[4],
-                                                             czu_staff_2_4ghz=networks[5],
-                                                             total_networks=total_users,
-                                                             timemark=actual_date_time_zone)
+            except Exception as exc:
+                logging.exception(f'{zone_name}, {exc}\n\n')
             conn.execute(insert_statement)
 
             # take data for each ap and sort it to zones
             for ap in ap_zones:
-                if zone in ap:
-                    ap[zone] += total_users
+                if zone_name in ap:
+                    ap[zone_name] += total_users
         # summ data and put it in DB
         for index, ap in enumerate(ap_zones):
             sum_of_users_in_zone = sum(ap.values())
             insert_statement = wifi_users.insert().values(
                 connUsers=sum_of_users_in_zone,
                 timemark=actual_date_time_zone,
-
-                # adding +1 because indexing starts at zero
-
                 sectorId=index + 1
             )
             conn.execute(insert_statement)
 
+    print('Done')
 
-print('Done')
 
-main()
+if __name__ == '__main__':
+    logging.basicConfig(filename='test_errors.log', level=logging.INFO)
+    main()
