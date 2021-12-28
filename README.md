@@ -8,13 +8,15 @@
 2. [Structure description](#structdesc)
 3. [How the script works](#howworks)
 4. [Database SQL Tables](#DB)
+5. [Map of Zones](#zones)
 
 
 ---
 
 ### <a id='intro'>Introduction</a>
 The purpose of this script is to parse data from WiFi access points, then process them and save them to the database
-More info: http://ls40.pef.czu.cz/obsazenost-arealu-czu
+[More info about Wolno application](http://ls40.pef.czu.cz/obsazenost-arealu-czu)
+
 
 ---
 ### <a id='structdesc'>Structure description</a>
@@ -32,16 +34,38 @@ SQLAlchemy==1.4.5
 SQLAlchemy-Utils==0.36.8
 pytz==2021.1
 ```
-__and dependencies that come with them.__
+and dependencies that come with them.
 ___
 
 ### <a id='howworks'>How the script works</a>
 
-##### String 65 to 73:
+```python
+counter_ap = 0
+    zones = []
+    wifi_zones = {}
+
+    http = urllib3.PoolManager(num_pools=1)
+    # we make initial request to main page
+    response = http.request('GET', 'http://192.168.80.14/apcka2')
+    html = response.data.decode('utf8')
+    soup = bs.BeautifulSoup(html, 'html.parser')
+    # when we getting names of all zones
+```
 We define variables for parsing and additional variables for working and sorting data. 
 
-##### String 75 to 91:
+___
+
+```python
+for link in soup.find_all('a'):
+        if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get(
+                'href')):  # Checking if AP's whitch we need is in building PEF (pef, cems) and adding to list of names of APs
+            zones.append(link.get('href'))
+```
+
 Here we finding all `<a>` tags and with `if` condition we get all acces points we have on PEF (`'pef'`, `'cems'`), then we adding it to our zones list. This is how we get names of acces points. 
+
+___
+
 Then, using acces points names, we can make a request to a specific acces point and get this tamplate of data:
 
 ```
@@ -94,10 +118,12 @@ ___
 
 ### <a id='DB'>Database SQL Tables</a>
 
-Data is saved in two tables (`wifi_data`, `wifi_users`)
+Data is saved in two tables (`wifi_data`, `wifi_users`) __Name of Tables is subject to change.__
 In table `wifi_data` we save all data. And in table `wifi_users` we save the data that we have previously sorted into specific zones with specific ID by `ap_zones.py`
 
+___
 
+### <a id='zones'>Map of Zones</a>
 
 
 
