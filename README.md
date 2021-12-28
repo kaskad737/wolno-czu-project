@@ -6,12 +6,112 @@
 ## Content
 1. [Introduction](#intro)
 2. [Structure description](#structdesc)
+3. [How the script works](#howworks)
+4. [Database SQL Tables](#DB)
 
 
 ---
 
 ### <a id='intro'>Introduction</a>
 The purpose of this script is to parse data from WiFi access points, then process them and save them to the database
+More info: http://ls40.pef.czu.cz/obsazenost-arealu-czu
 
 ---
 ### <a id='structdesc'>Structure description</a>
+
+File ```wifi_parser.py``` сontains actually script for parsing data from WiFi acces points and saves it to database
+
+File ```ap_zones.py``` is file for mapping (static mapping) existing acces points to zones we have on map (see images). One zone can include one or more acces points. ID of zones depend on the zone index in the zone list.
+
+
+##### When creating the script, the following modules were used:
+```
+beautifulsoup4==4.9.3
+urllib3==1.26.4
+SQLAlchemy==1.4.5
+SQLAlchemy-Utils==0.36.8
+pytz==2021.1
+```
+__and dependencies that come with them.__
+___
+
+### <a id='howworks'>How the script works</a>
+
+##### String 65 to 73:
+We define variables for parsing and additional variables for working and sorting data. 
+
+##### String 75 to 91:
+Here we finding all `<a>` tags and with `if` condition we get all acces points we have on PEF (`'pef'`, `'cems'`), then we adding it to our zones list. This is how we get names of acces points. 
+Then, using acces points names, we can make a request to a specific acces point and get this tamplate of data:
+
+```
+API response structure:
+AP_Name (Hostname)
+AP_Uptime 
+AP_Model
+Networks_5G: (str, const)
+A
+B
+C
+Networks_2.4G: (str, const)
+A
+B
+C
+Pocet_lidi_5G: (str, const)
+network_A
+network_B
+network_C
+Pocet_lidi_2.4G: (str, const)
+network_A
+network_B
+network_C
+data z controlleru (str, const)
+vytvoreni souboru pro dane ap creating: (str, const) timestamp (datetime)
+```
+
+
+I would like to dwell especially on this piece of code and explain it in more detail
+```python
+# when we make requests using name of zones to get data for each zone
+    for name in zones:
+        if name:
+            counter_ap += 1
+        response = http.request('GET', f'http://192.168.80.14/apcka2/{name}')
+        html = response.data.decode('utf8')
+        networks_counts = list(chain(x.split('\n')[1:-1] for x in html.split(':')[1:5]))
+        g2, g5 = tuple(dict(zip(networks_counts[x], networks_counts[y])) for x, y in [
+            (1, 3),
+            (0, 2),
+        ])
+
+        wifi_zones[name] = {'2.4G': g2, '5G': g5}
+```
+First, when we make http request and get data and decode it to html, we take specific html we get before and get lists of names of 5G and 2.4G networks, and lists with specific integers (which means users).
+
+Second, we take these lists with network names and integers and make dicts by connecting specific names with specific integers.
+
+___
+
+### <a id='DB'>Database SQL Tables</a>
+
+Data is saved in two tables (`wifi_data`, `wifi_users`)
+In table `wifi_data` we save all data. And in table `wifi_users` we save the data that we have previously sorted into specific zones with specific ID by `ap_zones.py`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

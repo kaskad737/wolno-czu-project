@@ -1,10 +1,8 @@
 import bs4 as bs
 import urllib3
-import re
 import os
 import datetime as d
 import pytz
-import sqlalchemy
 import logging
 from itertools import chain
 from sqlalchemy import create_engine
@@ -35,6 +33,8 @@ sit_B
 sit_C
 Timestamp data z controlleru
 Timestamp vytvoreni souboru pro dane ap
+
+
 EN:
 API response structure:
 AP_Name (Hostname)
