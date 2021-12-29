@@ -133,8 +133,19 @@ ___
 Each number on the map corresponds to a zone ID in `ap_zones.py`
 ### 1.NP
 ![1.NP](1.NP.jpg)
+___
 ### 2.NP
 ![2.NP](2.NP.jpg)
+___
+### 3.NP
+![3.NP](3.NP.jpg)
+___
+### 4.NP
+![4.NP](4.NP.jpg)
+___
+### 5.NP
+![5.NP](5.NP.jpg)
+___
 
 
 
