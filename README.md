@@ -13,13 +13,13 @@
 
 ---
 
-### <a id='intro'>Introduction</a>
+## <a id='intro'>Introduction</a>
 The purpose of this script is to parse data from WiFi access points, then process them and save them to the database
-[More info about Wolno application](http://ls40.pef.czu.cz/obsazenost-arealu-czu)
+__[More info about Wolno application](http://ls40.pef.czu.cz/obsazenost-arealu-czu)__
 
 
 ---
-### <a id='structdesc'>Structure description</a>
+## <a id='structdesc'>Structure description</a>
 
 File ```wifi_parser.py``` сontains actually script for parsing data from WiFi acces points and saves it to database
 
@@ -37,7 +37,7 @@ pytz==2021.1
 and dependencies that come with them.
 ___
 
-### <a id='howworks'>How the script works</a>
+## <a id='howworks'>How the script works</a>
 
 ```python
 counter_ap = 0
@@ -116,14 +116,14 @@ Second, we take these lists with network names and integers and make dicts by co
 
 ___
 
-### <a id='DB'>Database SQL Tables</a>
+## <a id='DB'>Database SQL Tables</a>
 
 Data is saved in two tables (`wifi_data`, `wifi_users`) __Name of Tables is subject to change.__
 In table `wifi_data` we save all data. And in table `wifi_users` we save the data that we have previously sorted into specific zones with specific ID by `ap_zones.py`
 
 ___
 
-### <a id='zones'>Map of Zones</a>
+## <a id='zones'>Map of Zones</a>
 
 
 
