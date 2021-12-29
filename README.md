@@ -118,7 +118,11 @@ ___
 
 ## <a id='DB'>Database SQL Tables</a>
 
-Data is saved in two tables (`wifi_data`, `wifi_users`) __Name of Tables is subject to change.__
+Data is saved in two tables (`wifi_data`, `wifi_users`) __Name of Tables is subject to change.
+
+![wifi_data](wifi_data.jpg)
+![wifi_users](wifi_users.jpg)
+__
 In table `wifi_data` we save all data. And in table `wifi_users` we save the data that we have previously sorted into specific zones with specific ID by `ap_zones.py`
 
 ___
