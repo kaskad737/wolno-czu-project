@@ -15,10 +15,9 @@
 
 ## <a id='intro'>Introduction</a>
 The purpose of this script is to parse data from WiFi access points, then process them and save them to the database
+
 __[More info about Wolno application](http://ls40.pef.czu.cz/obsazenost-arealu-czu)__
 
-
----
 ## <a id='structdesc'>Structure description</a>
 
 File ```wifi_parser.py``` сontains actually script for parsing data from WiFi acces points and saves it to database
@@ -131,19 +130,19 @@ ___
 
 ## <a id='zones'>Map of Zones</a>
 Each number on the map corresponds to a zone ID in `ap_zones.py`
-### 1.NP
+### 1.Floor
 ![1.NP](1.NP.jpg)
 ___
-### 2.NP
+### 2.Floor
 ![2.NP](2.NP.jpg)
 ___
-### 3.NP
+### 3.Floor
 ![3.NP](3.NP.jpg)
 ___
-### 4.NP
+### 4.Floor
 ![4.NP](4.NP.jpg)
 ___
-### 5.NP
+### 5.Floor
 ![5.NP](5.NP.jpg)
 ___
 
