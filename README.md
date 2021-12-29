@@ -2,7 +2,6 @@
 
 ![wolno_logo.png](http://ls40.pef.czu.cz/files/wolno_logo.png)
 
----
 ## Content
 1. [Introduction](#intro)
 2. [Structure description](#structdesc)
