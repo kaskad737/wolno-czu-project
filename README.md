@@ -130,7 +130,9 @@ In table `wifi_data` we save all data. And in table `wifi_users` we save the dat
 ___
 
 ## <a id='zones'>Map of Zones</a>
-
+Each number on the map corresponds to a zone ID in `ap_zones.py`
+### 1.NP
+![1.NP](1.NP.jpg)
 
 
 
