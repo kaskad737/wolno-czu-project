@@ -120,7 +120,9 @@ ___
 
 Data is saved in two tables (`wifi_data`, `wifi_users`) __Name of Tables is subject to change.__
 
+### wifi_data
 ![wifi_data](wifi_data.jpg)
+### wifi_users
 ![wifi_users](wifi_users.jpg)
 ___
 In table `wifi_data` we save all data. And in table `wifi_users` we save the data that we have previously sorted into specific zones with specific ID by `ap_zones.py`
@@ -128,6 +130,8 @@ In table `wifi_data` we save all data. And in table `wifi_users` we save the dat
 ___
 
 ## <a id='zones'>Map of Zones</a>
+
+
 
 
 
