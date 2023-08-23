@@ -21,29 +21,22 @@ zones = []
 wifi_zones = {}
 
 for link in soup.find_all('a'):
-    if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get(
-                'href')):
+    if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get('href')):
         if link['href']:
             zone_name = link['href']
             zone_response = requests.get(f'{URL}/{zone_name}')
-
             if zone_response.ok:
-
                 list_test = zone_response.text.split('\n')
                 test_length = len(zone_response.text.split('\n'))
-                print(list_test)
                 if 'Pocet_lidi_5G:' in list_test:
                     g5_index = list_test.index('Pocet_lidi_5G:')
                     g5_result = map(list(takewhile(lambda x: x.isdigit(), list_test[g5_index + 1:])), int)
                 if 'Pocet_lidi_2.4G:' in list_test:
                     g2_index = list_test.index('Pocet_lidi_2.4G:')
                     g2_result = map(list(takewhile(lambda x: x.isdigit(), list_test[g2_index + 1:])), int)
-        
                 wifi_zones[zone_name] = {'2.4G': g2_result, '5G': g5_result}
-            
             else:
                 wolno_logger.info(f'From zone - {zone_name}, we don\'t have any data')
-
 
 DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
