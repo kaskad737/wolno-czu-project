@@ -12,18 +12,21 @@ from itertools import takewhile
 logging.config.dictConfig(dict_config)
 wolno_logger: logging.Logger = logging.getLogger('wolnoLogger')
 
-def peoples_in_network_counter(name, network_type, zones_list):
+def peoples_in_network_counter(network_type, zones_list):
+    result_dict = {}
     numbers_index = zones_list.index(f'Pocet_lidi_{network_type}:') + 1
     networks_names_index = zones_list.index(f'Site_{network_type}:') + 1
     numbers_result = list(map(int, list(takewhile(lambda x: x.isdigit(), zones_list[numbers_index:]))))
-
     index_until = len(numbers_result) + networks_names_index
-
     networks_names_result = list(network_name for network_name in zones_list[networks_names_index:index_until])
     result_summa = sum(numbers_result)
     final_result = dict(zip(networks_names_result, numbers_result))
-    wifi_zones[name][f'{network_type}'] = final_result
-    wifi_zones[name][f'{network_type}'][f'{network_type}_total'] = result_summa
+    result_dict[f'{network_type}'] = final_result
+    result_dict[f'{network_type}'][f'{network_type}_total'] = result_summa
+
+    return result_dict
+
+
 
 URL = 'http://192.168.80.14/apcka2'
 
@@ -44,17 +47,15 @@ for link in soup.find_all('a'):
                 wifi_zones[zone_name] = {}
                 list_test = zone_response.text.split('\n')
                 if ('Pocet_lidi_5G:' and 'Site_5G:') in list_test:
-                    peoples_in_network_counter(name=zone_name, network_type='5G', zones_list=list_test)
+                    g5_result = peoples_in_network_counter(network_type='5G', zones_list=list_test)
+                    wifi_zones[zone_name].update(g5_result)
                 if ('Pocet_lidi_2.4G:' and 'Site_2.4G:')  in list_test:
-                    peoples_in_network_counter(name=zone_name, network_type='2.4G', zones_list=list_test)     
+                    g2_result = peoples_in_network_counter(network_type='2.4G', zones_list=list_test)
+                    wifi_zones[zone_name].update(g2_result)
             else:
                 wolno_logger.info(f'From zone - {zone_name}, we don\'t have any data')
 
-                
-from pprint import pprint
-print(counter)
-pprint(wifi_zones)
-print(len(wifi_zones))
+            
 
 # DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
