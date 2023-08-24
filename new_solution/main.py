@@ -56,12 +56,16 @@ for link in soup.find_all('a'):
 DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
 
-# conn = psycopg2.connect(
-#     host=DB_HOST,
-#     database=DB_NAME,
-#     user=DB_USER,
-#     password=DB_PASSWORD)
+conn = psycopg2.connect(
+    host=DB_HOST,
+    database=DB_NAME,
+    user=DB_USER,
+    password=DB_PASSWORD)
 
+with conn:
+    with conn.cursor() as cursor:
+        cursor.execute()
+    
 # get actual date and time
 # actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
 
