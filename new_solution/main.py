@@ -13,6 +13,7 @@ logging.config.dictConfig(dict_config)
 wolno_logger: logging.Logger = logging.getLogger('wolnoLogger')
 
 def peoples_in_network_counter(network_type, zones_list):
+    wolno_logger.info(f'Count peoples for {network_type}')
     result_dict = {}
     numbers_index = zones_list.index(f'Pocet_lidi_{network_type}:') + 1
     networks_names_index = zones_list.index(f'Site_{network_type}:') + 1
@@ -27,78 +28,81 @@ def peoples_in_network_counter(network_type, zones_list):
     return result_dict
 
 
+def main():
+    URL = 'http://192.168.80.14/apcka2'
 
-URL = 'http://192.168.80.14/apcka2'
+    response = requests.get(URL)
+    if response.ok:
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-response = requests.get(URL)
-if response.ok:
-    soup = BeautifulSoup(response.text, 'html.parser')
+        wifi_zones = {}
+        total_users = 0
 
-    wifi_zones = {}
-    total_users = 0
+        for link in soup.find_all('a'):
+            if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get('href')):
+                if link['href']:
+                    zone_name = link['href']
+                    zone_response = requests.get(f'{URL}/{zone_name}')
+                    if zone_response.ok:
+                        wifi_zones[zone_name] = {}
+                        zone_total_users = 0
+                        zone_data_list = zone_response.text.split('\n')
+                        if ('Pocet_lidi_5G:' and 'Site_5G:') in zone_data_list:
+                            g5_result = peoples_in_network_counter(network_type='5G', zones_list=zone_data_list)
+                            wifi_zones[zone_name].update(g5_result)
+                            zone_total_users += wifi_zones[zone_name]['5G']['5G_total']
+                        if ('Pocet_lidi_2.4G:' and 'Site_2.4G:')  in zone_data_list:
+                            g2_result = peoples_in_network_counter(network_type='2.4G', zones_list=zone_data_list)
+                            wifi_zones[zone_name].update(g2_result)
+                            zone_total_users += wifi_zones[zone_name]['2.4G']['2.4G_total']
+                        wifi_zones[zone_name].update({f'{zone_name}_total': zone_total_users})
+                        total_users += zone_total_users        
+                    else:
+                        wolno_logger.info(f'From zone - {zone_name}, we don\'t have any data')
 
-    for link in soup.find_all('a'):
-        if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get('href')):
-            if link['href']:
-                zone_name = link['href']
-                zone_response = requests.get(f'{URL}/{zone_name}')
-                if zone_response.ok:
-                    wifi_zones[zone_name] = {}
-                    zone_total_users = 0
-                    zone_data_list = zone_response.text.split('\n')
-                    if ('Pocet_lidi_5G:' and 'Site_5G:') in zone_data_list:
-                        g5_result = peoples_in_network_counter(network_type='5G', zones_list=zone_data_list)
-                        wifi_zones[zone_name].update(g5_result)
-                        zone_total_users += wifi_zones[zone_name]['5G']['5G_total']
-                    if ('Pocet_lidi_2.4G:' and 'Site_2.4G:')  in zone_data_list:
-                        g2_result = peoples_in_network_counter(network_type='2.4G', zones_list=zone_data_list)
-                        wifi_zones[zone_name].update(g2_result)
-                        zone_total_users += wifi_zones[zone_name]['2.4G']['2.4G_total']
-                    wifi_zones[zone_name].update({f'{zone_name}_total': zone_total_users})
-                    total_users += zone_total_users        
-                else:
-                    wolno_logger.info(f'From zone - {zone_name}, we don\'t have any data')
-
-    # DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
+        # DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
 
-    # conn = psycopg2.connect(
-    #     host=DB_HOST,
-    #     database=DB_NAME,
-    #     user=DB_USER,
-    #     password=DB_PASSWORD)
+        # conn = psycopg2.connect(
+        #     host=DB_HOST,
+        #     database=DB_NAME,
+        #     user=DB_USER,
+        #     password=DB_PASSWORD)
 
-    # with conn:
-    #     with conn.cursor() as cursor:
-    #         cursor.execute(
-    #             '''
-    #                 CREATE TABLE IF NOT EXISTS wifi_data_test (
-    #                     id BIGINT PRIMARY KEY AUTOINCREMENT, 
-    #                     ssid TEXT, eduroam_5ghz INTEGER, 
-    #                     czu_guest_5ghz INTEGER, 
-    #                     czu_staff_5ghz INTEGER, 
-    #                     pef_repro_5ghz INTEGER, 
-    #                     eduroam_2_4ghz INTEGER, 
-    #                     czu_guest_2_4ghz INTEGER, 
-    #                     czu_staff_2_4ghz INTEGER, 
-    #                     pef_repro_2_4ghz INTEGER, 
-    #                     total_networks INTEGER, 
-    #                     timemark TIMESTAMPTZ
-    #                     )
-    #             '''
-    #         )
-    #         cursor.execute(
-    #             '''
-    #                 CREATE TABLE IF NOT EXISTS wifi_users_test (
-    #                     id BIGINT PRIMARY KEY AUTOINCREMENT, 
-    #                     connUsers INTEGER, 
-    #                     timemark TIMESTAMPTZ, 
-    #                     sectorId INTEGER
-    #                     )
-    #             '''
-    #         )
-        
-    # get actual date and time
-    # actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
-else:
-    wolno_logger.info('Bad request')
+        # with conn:
+        #     with conn.cursor() as cursor:
+        #         cursor.execute(
+        #             '''
+        #                 CREATE TABLE IF NOT EXISTS wifi_data_test (
+        #                     id BIGINT PRIMARY KEY AUTOINCREMENT, 
+        #                     ssid TEXT, eduroam_5ghz INTEGER, 
+        #                     czu_guest_5ghz INTEGER, 
+        #                     czu_staff_5ghz INTEGER, 
+        #                     pef_repro_5ghz INTEGER, 
+        #                     eduroam_2_4ghz INTEGER, 
+        #                     czu_guest_2_4ghz INTEGER, 
+        #                     czu_staff_2_4ghz INTEGER, 
+        #                     pef_repro_2_4ghz INTEGER, 
+        #                     total_networks INTEGER, 
+        #                     timemark TIMESTAMPTZ
+        #                     )
+        #             '''
+        #         )
+        #         cursor.execute(
+        #             '''
+        #                 CREATE TABLE IF NOT EXISTS wifi_users_test (
+        #                     id BIGINT PRIMARY KEY AUTOINCREMENT, 
+        #                     connUsers INTEGER, 
+        #                     timemark TIMESTAMPTZ, 
+        #                     sectorId INTEGER
+        #                     )
+        #             '''
+        #         )
+            
+        # get actual date and time
+        # actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
+    else:
+        wolno_logger.info('Bad request')
+
+if __name__ == '__main__':
+    main()

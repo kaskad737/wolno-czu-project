@@ -3,16 +3,17 @@
 ![wolno_logo.png](http://ls40.pef.czu.cz/files/wolno_logo.png)
 
 ## Content
+
 1. [Introduction](#intro)
 2. [Structure description](#structdesc)
 3. [How the script works](#howworks)
 4. [Database SQL Tables](#DB)
 5. [Map of Zones](#zones)
 
-
 ---
 
 ## <a id='intro'>Introduction</a>
+
 The purpose of this script is to parse data from WiFi access points, then process them and save them to the database
 
 __[More info about Wolno application](http://ls40.pef.czu.cz/obsazenost-arealu-czu)__
@@ -23,8 +24,8 @@ File ```wifi_parser.py``` сontains actually script for parsing data from WiFi a
 
 File ```ap_zones.py``` is file for mapping (static mapping) existing acces points to zones we have on map (see images). One zone can include one or more acces points. ID of zones depend on the zone index in the zone list.
 
+##### When creating the script, the following modules were used
 
-##### When creating the script, the following modules were used:
 ```
 beautifulsoup4==4.9.3
 urllib3==1.26.4
@@ -32,6 +33,7 @@ SQLAlchemy==1.4.5
 SQLAlchemy-Utils==0.36.8
 pytz==2021.1
 ```
+
 and dependencies that come with them.
 ___
 
@@ -49,7 +51,8 @@ counter_ap = 0
     soup = bs.BeautifulSoup(html, 'html.parser')
     # when we getting names of all zones
 ```
-We define variables for parsing and additional variables for working and sorting data. 
+
+We define variables for parsing and additional variables for working and sorting data.
 
 ___
 
@@ -60,7 +63,7 @@ for link in soup.find_all('a'):
             zones.append(link.get('href'))
 ```
 
-Here we finding all `<a>` tags and with `if` condition we get all acces points we have on PEF (`'pef'`, `'cems'`), then we adding it to our zones list. This is how we get names of acces points. 
+Here we finding all `<a>` tags and with `if` condition we get all acces points we have on PEF (`'pef'`, `'cems'`), then we adding it to our zones list. This is how we get names of acces points.
 
 ___
 
@@ -91,8 +94,8 @@ data z controlleru (str, const)
 vytvoreni souboru pro dane ap creating: (str, const) timestamp (datetime)
 ```
 
-
 I would like to dwell especially on this piece of code and explain it in more detail
+
 ```python
 # when we make requests using name of zones to get data for each zone
     for name in zones:
@@ -108,6 +111,7 @@ I would like to dwell especially on this piece of code and explain it in more de
 
         wifi_zones[name] = {'2.4G': g2, '5G': g5}
 ```
+
 First, when we make http request and get data and decode it to html, we take specific html we get before and get lists of names of 5G and 2.4G networks, and lists with specific integers (which means users).
 
 Second, we take these lists with network names and integers and make dicts by connecting specific names with specific integers.
@@ -119,46 +123,42 @@ ___
 Data is saved in two tables (`wifi_data`, `wifi_users`) __Name of Tables is subject to change.__
 
 ### wifi_data
-![wifi_data](wifi_data.jpg)
+
+![wifi_data](images/wifi_data.jpg)
+
 ### wifi_users
-![wifi_users](wifi_users.jpg)
+
+![wifi_users](images/wifi_users.jpg)
 ___
 In table `wifi_data` we save all data. And in table `wifi_users` we save the data that we have previously sorted into specific zones with specific ID by `ap_zones.py`
 
 ___
 
 ## <a id='zones'>Map of Zones</a>
+
 Each number on the map corresponds to a zone ID in `ap_zones.py`
+
 ### 1.Floor
-![1.NP](1.NP.jpg)
+
+![1.NP](images/1.NP.jpg)
 ___
+
 ### 2.Floor
-![2.NP](2.NP.jpg)
+
+![2.NP](images/2.NP.jpg)
 ___
+
 ### 3.Floor
-![3.NP](3.NP.jpg)
+
+![3.NP](images/3.NP.jpg)
 ___
+
 ### 4.Floor
-![4.NP](4.NP.jpg)
+
+![4.NP](images/4.NP.jpg)
 ___
+
 ### 5.Floor
-![5.NP](5.NP.jpg)
+
+![5.NP](images/5.NP.jpg)
 ___
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
