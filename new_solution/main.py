@@ -64,15 +64,41 @@ conn = psycopg2.connect(
 
 with conn:
     with conn.cursor() as cursor:
-        cursor.execute()
+        cursor.execute(
+            '''
+                CREATE TABLE IF NOT EXISTS wifi_data_test (
+                    id BIGINT PRIMARY KEY AUTOINCREMENT, 
+                    ssid TEXT, eduroam_5ghz INTEGER, 
+                    czu_guest_5ghz INTEGER, 
+                    czu_staff_5ghz INTEGER, 
+                    pef_repro_5ghz INTEGER, 
+                    eduroam_2_4ghz INTEGER, 
+                    czu_guest_2_4ghz INTEGER, 
+                    czu_staff_2_4ghz INTEGER, 
+                    pef_repro_2_4ghz INTEGER, 
+                    total_networks INTEGER, 
+                    timemark TIMESTAMPTZ
+                    )
+            '''
+        )
+        cursor.execute(
+            '''
+                CREATE TABLE IF NOT EXISTS wifi_users_test (
+                    id BIGINT PRIMARY KEY AUTOINCREMENT, 
+                    connUsers INTEGER, 
+                    timemark TIMESTAMPTZ, 
+                    sectorId INTEGER
+                    )
+            '''
+        )
     
 # get actual date and time
 # actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
 
 # '''
-# CREATE TABLE wifi_data_test (id BIGINT PRIMARY KEY AUTOINCREMENT, ssid TEXT, eduroam_5ghz INTEGER, czu_guest_5ghz INTEGER, czu_staff_5ghz INTEGER, pef_repro_5ghz INTEGER, eduroam_2_4ghz INTEGER, czu_guest_2_4ghz INTEGER, czu_staff_2_4ghz INTEGER, pef_repro_2_4ghz INTEGER, total_networks INTEGER, timemark TIMESTAMPTZ)
+# CREATE TABLE IF NOT EXISTS wifi_data_test (id BIGINT PRIMARY KEY AUTOINCREMENT, ssid TEXT, eduroam_5ghz INTEGER, czu_guest_5ghz INTEGER, czu_staff_5ghz INTEGER, pef_repro_5ghz INTEGER, eduroam_2_4ghz INTEGER, czu_guest_2_4ghz INTEGER, czu_staff_2_4ghz INTEGER, pef_repro_2_4ghz INTEGER, total_networks INTEGER, timemark TIMESTAMPTZ)
 # '''
 
 # '''
-# CREATE TABLE wifi_users_test (id BIGINT PRIMARY KEY AUTOINCREMENT, connUsers INTEGER, timemark TIMESTAMPTZ, sectorId INTEGER)
+# CREATE TABLE IF NOT EXISTS wifi_users_test (id BIGINT PRIMARY KEY AUTOINCREMENT, connUsers INTEGER, timemark TIMESTAMPTZ, sectorId INTEGER)
 # '''
