@@ -33,31 +33,28 @@ URL = 'http://192.168.80.14/apcka2'
 response = requests.get(URL)
 soup = BeautifulSoup(response.text, 'html.parser')
 
-zones = []
 wifi_zones = {}
-counter = 0
 
 for link in soup.find_all('a'):
     if (('pef' in link.get('href')) or ('cems' in link.get('href'))) and ('out' not in link.get('href')):
         if link['href']:
-            counter += 1
             zone_name = link['href']
             zone_response = requests.get(f'{URL}/{zone_name}')
             if zone_response.ok:
                 wifi_zones[zone_name] = {}
-                list_test = zone_response.text.split('\n')
-                if ('Pocet_lidi_5G:' and 'Site_5G:') in list_test:
-                    g5_result = peoples_in_network_counter(network_type='5G', zones_list=list_test)
+                zone_data_list = zone_response.text.split('\n')
+                if ('Pocet_lidi_5G:' and 'Site_5G:') in zone_data_list:
+                    g5_result = peoples_in_network_counter(network_type='5G', zones_list=zone_data_list)
                     wifi_zones[zone_name].update(g5_result)
-                if ('Pocet_lidi_2.4G:' and 'Site_2.4G:')  in list_test:
-                    g2_result = peoples_in_network_counter(network_type='2.4G', zones_list=list_test)
+                if ('Pocet_lidi_2.4G:' and 'Site_2.4G:')  in zone_data_list:
+                    g2_result = peoples_in_network_counter(network_type='2.4G', zones_list=zone_data_list)
                     wifi_zones[zone_name].update(g2_result)
             else:
                 wolno_logger.info(f'From zone - {zone_name}, we don\'t have any data')
 
-            
 
-# DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
+DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
+
 
 # conn = psycopg2.connect(
 #     host=DB_HOST,
@@ -73,5 +70,5 @@ for link in soup.find_all('a'):
 # '''
 
 # '''
-# CREATE TABLE wifi_users_test (id BIGINT PRIMARY KEY AUTOINCREMENT, connUsers INTEGER, timemark TIMESTAMPTZ, sectorId INTEGER
+# CREATE TABLE wifi_users_test (id BIGINT PRIMARY KEY AUTOINCREMENT, connUsers INTEGER, timemark TIMESTAMPTZ, sectorId INTEGER)
 # '''
