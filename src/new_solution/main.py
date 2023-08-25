@@ -167,7 +167,7 @@ def main():
                             index + 1
                         )
                     )
-        wolno_logger.info('Parsing finish successfully')
+        wolno_logger.info('Parsing was successful')
     else:
         wolno_logger.info(f'Bad initial request to {URL}')
 
