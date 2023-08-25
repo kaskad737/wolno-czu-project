@@ -60,47 +60,84 @@ def main():
                     else:
                         wolno_logger.info(f'From zone - {zone_name}, we don\'t have any data')
 
-        # DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
+        DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
+        conn = psycopg2.connect(
+            host=DB_HOST,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD)
 
-        # conn = psycopg2.connect(
-        #     host=DB_HOST,
-        #     database=DB_NAME,
-        #     user=DB_USER,
-        #     password=DB_PASSWORD)
+        with conn:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    '''
+                        CREATE TABLE IF NOT EXISTS wifi_data_new_test (
+                            id BIGINT PRIMARY KEY AUTOINCREMENT, 
+                            ssid TEXT, 
+                            eduroam_5ghz INTEGER, 
+                            czu_guest_5ghz INTEGER, 
+                            czu_staff_5ghz INTEGER, 
+                            pef_repro_5ghz INTEGER,
+                            total_5ghz INTEGER, 
+                            eduroam_2_4ghz INTEGER, 
+                            czu_guest_2_4ghz INTEGER, 
+                            czu_staff_2_4ghz INTEGER, 
+                            pef_repro_2_4ghz INTEGER,
+                            total_2_4_ghz INTEGER, 
+                            total_users INTEGER, 
+                            timemark TIMESTAMPTZ
+                            )
+                    '''
+                )
+                cursor.execute(
+                    '''
+                        CREATE TABLE IF NOT EXISTS wifi_users_new_test (
+                            id BIGINT PRIMARY KEY AUTOINCREMENT, 
+                            connUsers INTEGER, 
+                            timemark TIMESTAMPTZ, 
+                            sectorId INTEGER
+                            )
+                    '''
+                )
 
-        # with conn:
-        #     with conn.cursor() as cursor:
-        #         cursor.execute(
-        #             '''
-        #                 CREATE TABLE IF NOT EXISTS wifi_data_test (
-        #                     id BIGINT PRIMARY KEY AUTOINCREMENT, 
-        #                     ssid TEXT, eduroam_5ghz INTEGER, 
-        #                     czu_guest_5ghz INTEGER, 
-        #                     czu_staff_5ghz INTEGER, 
-        #                     pef_repro_5ghz INTEGER, 
-        #                     eduroam_2_4ghz INTEGER, 
-        #                     czu_guest_2_4ghz INTEGER, 
-        #                     czu_staff_2_4ghz INTEGER, 
-        #                     pef_repro_2_4ghz INTEGER, 
-        #                     total_networks INTEGER, 
-        #                     timemark TIMESTAMPTZ
-        #                     )
-        #             '''
-        #         )
-        #         cursor.execute(
-        #             '''
-        #                 CREATE TABLE IF NOT EXISTS wifi_users_test (
-        #                     id BIGINT PRIMARY KEY AUTOINCREMENT, 
-        #                     connUsers INTEGER, 
-        #                     timemark TIMESTAMPTZ, 
-        #                     sectorId INTEGER
-        #                     )
-        #             '''
-        #         )
-            
-        # get actual date and time
-        # actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
+                for z_name, zone_data in wifi_zones.items():
+                    # get actual date and time
+                    actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
+                    cursor.execute(
+                        '''
+                            INSERT INTO wifi_data_new_test (
+                                ssid, 
+                                eduroam_5ghz, 
+                                czu_guest_5ghz, 
+                                czu_staff_5ghz, 
+                                pef_repro_5ghz,
+                                total_5ghz, 
+                                eduroam_2_4ghz, 
+                                czu_guest_2_4ghz, 
+                                czu_staff_2_4ghz, 
+                                pef_repro_2_4ghz,
+                                total_2_4_ghz, 
+                                total_users, 
+                                timemark
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        ''',
+                        [
+                            z_name,
+                            zone_data['5G'].get('eduroam'),
+                            zone_data['5G'].get('CZU-guest'),
+                            zone_data['5G'].get('CZU-staff'),
+                            zone_data['5G'].get('PEF-repro'),
+                            zone_data['5G'].get('5G_total'),
+                            zone_data['2.4G'].get('eduroam'),
+                            zone_data['2.4G'].get('CZU-guest'),
+                            zone_data['2.4G'].get('CZU-staff'),
+                            zone_data['2.4G'].get('PEF-repro'),
+                            zone_data['2.4G'].get('2.4G_total'),
+                            zone_data.get(f'{z_name}_total'),
+                            actual_date_time_zone
+                        ]
+                    )           
     else:
         wolno_logger.info('Bad request')
 
