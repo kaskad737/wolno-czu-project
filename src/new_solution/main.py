@@ -144,19 +144,19 @@ def main():
                     )
                     # take data for each ap and sort it to zones    
                     for ap in ap_zones:
-                        if zone_name in ap:
-                            ap[zone_name] += total_users
+                        if z_name in ap:
+                            ap[z_name] += zone_data.get(f'{z_name}_total')
                 # summ data and put it in DB
                 for index, ap in enumerate(ap_zones):
                     actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
                     sum_of_users_in_zone = sum(ap.values())  
                     cursor.execute(
                         '''
-                            INSERT INTO wifi_data_new_test (
+                            INSERT INTO wifi_users_new_test (
                                 connUsers, 
                                 timemark, 
                                 sectorId
-                            ) VALUES (%s, %s, %s, %s)
+                            ) VALUES (%s, %s, %s)
                         ''',
                         (
                             sum_of_users_in_zone,
