@@ -14,7 +14,6 @@ logging.config.dictConfig(dict_config)
 wolno_logger: logging.Logger = logging.getLogger('wolnoLogger')
 
 def peoples_in_network_counter(network_type, zones_list):
-    wolno_logger.info(f'Count peoples for {network_type}')
     result_dict = {}
     numbers_index = zones_list.index(f'Pocet_lidi_{network_type}:') + 1
     networks_names_index = zones_list.index(f'Site_{network_type}:') + 1
@@ -34,6 +33,7 @@ def main():
 
     response = requests.get(URL)
     if response.ok:
+        wolno_logger.info(f'Request to {URL} is ok')
         soup = BeautifulSoup(response.text, 'html.parser')
 
         wifi_zones = {}
@@ -45,9 +45,11 @@ def main():
                     zone_name = link['href']
                     zone_response = requests.get(f'{URL}/{zone_name}')
                     if zone_response.ok:
+                        wolno_logger.info(f'Request to zone - {zone_name} is ok')
                         wifi_zones[zone_name] = {}
                         zone_total_users = 0
                         zone_data_list = zone_response.text.split('\n')
+                        wolno_logger.info(f'Start counting peoples for 5G and 2.4G networks in {zone_name} zone')
                         if ('Pocet_lidi_5G:' and 'Site_5G:') in zone_data_list:
                             g5_result = peoples_in_network_counter(network_type='5G', zones_list=zone_data_list)
                             wifi_zones[zone_name].update(g5_result)
@@ -57,9 +59,10 @@ def main():
                             wifi_zones[zone_name].update(g2_result)
                             zone_total_users += wifi_zones[zone_name]['2.4G']['2.4G_total']
                         wifi_zones[zone_name].update({f'{zone_name}_total': zone_total_users})
-                        total_users += zone_total_users        
+                        total_users += zone_total_users   
+                        wolno_logger.info(f'Counting finish ({zone_name})')     
                     else:
-                        wolno_logger.info(f'From zone - {zone_name}, we don\'t have any data')
+                        wolno_logger.info(f'Bad request. Zone - {zone_name}. We don\'t have any data')
 
         DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
@@ -68,7 +71,7 @@ def main():
             database=DB_NAME,
             user=DB_USER,
             password=DB_PASSWORD)
-
+        wolno_logger.info(f'Connecting to DB ({DB_NAME})')
         with conn:
             with conn.cursor() as cursor:
                 wolno_logger.info('Creating "wifi_data_new_test" table if not exists')
@@ -103,11 +106,10 @@ def main():
                             )
                     '''
                 )
-
                 for z_name, zone_data in wifi_zones.items():
                     # get actual date and time
                     actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
-                    wolno_logger.info('Inserting data into "wifi_data_new_test" table')
+                    wolno_logger.info(f'Inserting data ({z_name}) into "wifi_data_new_test" table')
                     cursor.execute(
                         '''
                             INSERT INTO wifi_data_new_test (
@@ -150,6 +152,7 @@ def main():
                 for index, ap in enumerate(ap_zones):
                     actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
                     sum_of_users_in_zone = sum(ap.values())  
+                    wolno_logger.info(f'Inserting data (Zone number - {index + 1}) into "wifi_users_new_test" table')
                     cursor.execute(
                         '''
                             INSERT INTO wifi_users_new_test (
@@ -164,8 +167,9 @@ def main():
                             index + 1
                         )
                     )
+        wolno_logger.info('Parsing finish successfully')
     else:
-        wolno_logger.info('Bad request')
+        wolno_logger.info(f'Bad initial request to {URL}')
 
 if __name__ == '__main__':
     main()
