@@ -73,7 +73,7 @@ def main():
                 cursor.execute(
                     '''
                         CREATE TABLE IF NOT EXISTS wifi_data_new_test (
-                            id BIGINT PRIMARY KEY AUTOINCREMENT, 
+                            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
                             ssid TEXT, 
                             eduroam_5ghz INTEGER, 
                             czu_guest_5ghz INTEGER, 
@@ -93,7 +93,7 @@ def main():
                 cursor.execute(
                     '''
                         CREATE TABLE IF NOT EXISTS wifi_users_new_test (
-                            id BIGINT PRIMARY KEY AUTOINCREMENT, 
+                            id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY, 
                             connUsers INTEGER, 
                             timemark TIMESTAMPTZ, 
                             sectorId INTEGER
@@ -120,9 +120,9 @@ def main():
                                 total_2_4_ghz, 
                                 total_users, 
                                 timemark
-                            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                         ''',
-                        [
+                        (
                             z_name,
                             zone_data['5G'].get('eduroam'),
                             zone_data['5G'].get('CZU-guest'),
@@ -136,7 +136,7 @@ def main():
                             zone_data['2.4G'].get('2.4G_total'),
                             zone_data.get(f'{z_name}_total'),
                             actual_date_time_zone
-                        ]
+                        )
                     )           
     else:
         wolno_logger.info('Bad request')
