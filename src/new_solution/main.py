@@ -8,6 +8,7 @@ import logging.config
 from bs4 import BeautifulSoup
 from logging_config import dict_config
 from itertools import takewhile
+from ap_zones import ap_zones
 
 logging.config.dictConfig(dict_config)
 wolno_logger: logging.Logger = logging.getLogger('wolnoLogger')
@@ -70,6 +71,7 @@ def main():
 
         with conn:
             with conn.cursor() as cursor:
+                wolno_logger.info('Creating "wifi_data_new_test" table if not exists')
                 cursor.execute(
                     '''
                         CREATE TABLE IF NOT EXISTS wifi_data_new_test (
@@ -90,6 +92,7 @@ def main():
                             )
                     '''
                 )
+                wolno_logger.info('Creating "wifi_users_new_test" table if not exists')
                 cursor.execute(
                     '''
                         CREATE TABLE IF NOT EXISTS wifi_users_new_test (
@@ -104,6 +107,7 @@ def main():
                 for z_name, zone_data in wifi_zones.items():
                     # get actual date and time
                     actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
+                    wolno_logger.info('Inserting data into "wifi_data_new_test" table')
                     cursor.execute(
                         '''
                             INSERT INTO wifi_data_new_test (
@@ -137,7 +141,29 @@ def main():
                             zone_data.get(f'{z_name}_total'),
                             actual_date_time_zone
                         )
-                    )           
+                    )
+                    # take data for each ap and sort it to zones    
+                    for ap in ap_zones:
+                        if zone_name in ap:
+                            ap[zone_name] += total_users
+                # summ data and put it in DB
+                for index, ap in enumerate(ap_zones):
+                    actual_date_time_zone = ((pytz.utc.localize(datetime.datetime.utcnow())).astimezone(pytz.timezone("Europe/Prague"))).strftime('%Y-%m-%d %H:%M:%S%z')
+                    sum_of_users_in_zone = sum(ap.values())  
+                    cursor.execute(
+                        '''
+                            INSERT INTO wifi_data_new_test (
+                                connUsers, 
+                                timemark, 
+                                sectorId
+                            ) VALUES (%s, %s, %s, %s)
+                        ''',
+                        (
+                            sum_of_users_in_zone,
+                            actual_date_time_zone,
+                            index + 1
+                        )
+                    )
     else:
         wolno_logger.info('Bad request')
 
