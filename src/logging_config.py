@@ -1,3 +1,15 @@
+import logging
+import logging.handlers
+
+class DebugAndInfoFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname in ('INFO', 'DEBUG')
+
+
+class ErrorsFilter(logging.Filter):
+    def filter(self, record):
+        return record.levelname == 'ERROR'
+
 
 dict_config = {
     'version': 1,
@@ -13,12 +25,36 @@ dict_config = {
             'class': 'logging.StreamHandler',
             'level': 'DEBUG',
             'formatter': 'base'
-        }
+        },
+        'infoLog': {
+            'class': 'logging.FileHandler',
+            'level': 'DEBUG',
+            'formatter': 'base',
+            'filename': './logs/info.log',
+            'mode': 'a',
+            'filters': ['debug_and_info_filter']
+        },
+        'errorLog': {
+            'class': 'logging.FileHandler',
+            'level': 'DEBUG',
+            'formatter': 'base',
+            'filename': './logs/errors.log',
+            'mode': 'a',
+            'filters': ['errors_filter']
+        },
     },
     'loggers': {
         'wolnoLogger': {
             'level': 'DEBUG',
-            'handlers': ['console']
+            'handlers': ['console', 'infoLog', 'errorLog']
+        }
+    },
+    'filters': {
+        'debug_and_info_filter': {
+            '()': DebugAndInfoFilter
+        },
+        'errors_filter': {
+            '()': ErrorsFilter
         }
     }
 }
