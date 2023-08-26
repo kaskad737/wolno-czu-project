@@ -4,6 +4,7 @@ import datetime
 import pytz
 import psycopg2
 import requests
+import argparse
 import logging
 import logging.config
 from bs4 import BeautifulSoup
@@ -64,8 +65,6 @@ def main():
                         wolno_logger.info(f'Counting finish ({zone_name})')     
                     else:
                         wolno_logger.error(f'Bad request. Zone - {zone_name}. We don\'t have any data')
-
-        DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
         conn = psycopg2.connect(
             host=DB_HOST,
@@ -175,4 +174,14 @@ def main():
         sys.exit(1)
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Arguments for DB')
+    parser.add_argument('-h', '--db_host', type=str, help='Host of database', required=True)
+    parser.add_argument('-n', '--db_name', type=str, help='Name of database', required=True)
+    parser.add_argument('-u', '--db_user', type=str, help='Database user', required=True)
+    parser.add_argument('-p', '--db_password', type=str, help='Database password', required=True)
+    args = parser.parse_args()
+    DB_HOST = args.h
+    DB_NAME = args.n
+    DB_USER = args.u
+    DB_PASSWORD = args.p
     main()
