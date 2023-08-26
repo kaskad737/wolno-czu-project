@@ -175,13 +175,13 @@ def main():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Arguments for DB')
-    parser.add_argument('-dh', '--db_host', type=str, help='Host of database', required=True)
-    parser.add_argument('-n', '--db_name', type=str, help='Name of database', required=True)
-    parser.add_argument('-u', '--db_user', type=str, help='Database user', required=True)
-    parser.add_argument('-p', '--db_password', type=str, help='Database password', required=True)
+    parser.add_argument('--db_host', type=str, help='Host of database', required=True)
+    parser.add_argument('--db_name', type=str, help='Name of database', required=True)
+    parser.add_argument('--db_user', type=str, help='Database user', required=True)
+    parser.add_argument('--db_password', type=str, help='Database password', required=True)
     args = parser.parse_args()
-    DB_HOST = args.dh
-    DB_NAME = args.n
-    DB_USER = args.u
-    DB_PASSWORD = args.p
+    DB_HOST = args.db_host
+    DB_NAME = args.db_name
+    DB_USER = args.db_user
+    DB_PASSWORD = args.db_password
     main()

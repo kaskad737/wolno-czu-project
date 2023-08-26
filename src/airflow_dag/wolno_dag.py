@@ -27,7 +27,7 @@ wolno_dag = DAG(
 
 wolno_data_download_task = BashOperator(
     task_id='Wolno_data_downloader_task',
-    bash_command=f'/opt/airflow/envs/wolno-env/bin/python /opt/airflow/scripts/wolno-czu-project/src/main.py -dh {DB_HOST} -n {DB_NAME} -u {DB_USER} -p {DB_PASSWORD}',
+    bash_command=f'/opt/airflow/envs/wolno-env/bin/python /opt/airflow/scripts/wolno-czu-project/src/main.py --db_host {DB_HOST} --db_name {DB_NAME} --db_user {DB_USER} --db_password {DB_PASSWORD}',
     retries=3,
     retry_delay=datetime.timedelta(seconds=180),
     dag=wolno_dag
