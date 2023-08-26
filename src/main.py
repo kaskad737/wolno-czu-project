@@ -1,4 +1,5 @@
 import os
+import sys
 import datetime
 import pytz
 import psycopg2
@@ -168,8 +169,10 @@ def main():
                         )
                     )
         wolno_logger.info('Parsing was successful')
+        sys.exit(0)
     else:
         wolno_logger.error(f'Bad initial request to {URL}')
+        sys.exit(1)
 
 if __name__ == '__main__':
     main()
