@@ -1,5 +1,6 @@
 import logging
 import logging.handlers
+from master_config import LOGS_PATH
 
 class DebugAndInfoFilter(logging.Filter):
     def filter(self, record):
@@ -30,7 +31,7 @@ dict_config = {
             'class': 'logging.FileHandler',
             'level': 'DEBUG',
             'formatter': 'base',
-            'filename': './logs/info.log',
+            'filename': LOGS_PATH,
             'mode': 'a',
             'filters': ['debug_and_info_filter']
         },
@@ -38,7 +39,7 @@ dict_config = {
             'class': 'logging.FileHandler',
             'level': 'DEBUG',
             'formatter': 'base',
-            'filename': './logs/errors.log',
+            'filename': LOGS_PATH,
             'mode': 'a',
             'filters': ['errors_filter']
         },

@@ -1,0 +1,1 @@
+LOGS_PATH = '/opt/airflow/scripts/wolno-czu-project/src/logs'
