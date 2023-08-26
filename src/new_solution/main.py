@@ -62,7 +62,7 @@ def main():
                         total_users += zone_total_users   
                         wolno_logger.info(f'Counting finish ({zone_name})')     
                     else:
-                        wolno_logger.info(f'Bad request. Zone - {zone_name}. We don\'t have any data')
+                        wolno_logger.error(f'Bad request. Zone - {zone_name}. We don\'t have any data')
 
         DB_HOST, DB_NAME, DB_USER, DB_PASSWORD = tuple(os.environ.get(x) for x in ['DB_HOST', 'DB_NAME', 'DB_USER', 'DB_PASSWORD'])
 
@@ -169,7 +169,7 @@ def main():
                     )
         wolno_logger.info('Parsing was successful')
     else:
-        wolno_logger.info(f'Bad initial request to {URL}')
+        wolno_logger.error(f'Bad initial request to {URL}')
 
 if __name__ == '__main__':
     main()
