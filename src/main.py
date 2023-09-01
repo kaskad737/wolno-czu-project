@@ -1,4 +1,3 @@
-import os
 import sys
 import datetime
 import pytz
@@ -66,12 +65,13 @@ def main():
                     else:
                         wolno_logger.error(f'Bad request. Zone - {zone_name}. We don\'t have any data')
 
+        wolno_logger.info(f'Try to connect to DB ({DB_NAME})')
         conn = psycopg2.connect(
             host=DB_HOST,
             database=DB_NAME,
             user=DB_USER,
             password=DB_PASSWORD)
-        wolno_logger.info(f'Connecting to DB ({DB_NAME})')
+        wolno_logger.info(f'Connected to DB ({DB_NAME})')
         with conn:
             with conn.cursor() as cursor:
                 wolno_logger.info('Creating "wifi_data_new_test" table if not exists')

@@ -6,10 +6,10 @@ from airflow.models import Variable
 #####################################################################################
 # Variables in Airflow
 
-DB_HOST = Variable.get('DB_HOST')
-DB_NAME = Variable.get('DB_NAME')
-DB_USER = Variable.get('DB_USER')
-DB_PASSWORD = Variable.get('DB_PASSWORD')
+WOLNO_HOST = Variable.get('WOLNO_HOST')
+WOLNO_NAME = Variable.get('WOLNO_NAME')
+WOLNO_USER = Variable.get('WOLNO_USER')
+WOLNO_PASSWORD = Variable.get('WOLNO_PASSWORD')
 
 
 #####################################################################################
@@ -17,7 +17,7 @@ DB_PASSWORD = Variable.get('DB_PASSWORD')
 
 wolno_dag = DAG(
     'Wolno',
-    start_date=datetime.datetime(2023, 8, 26),
+    start_date=datetime.datetime(2023, 9, 1),
     schedule_interval='0 12 * * *',
     catchup = False
 )
@@ -27,7 +27,7 @@ wolno_dag = DAG(
 
 wolno_data_download_task = BashOperator(
     task_id='Wolno_data_downloader_task',
-    bash_command=f'/opt/airflow/envs/wolno-env/bin/python /opt/airflow/scripts/wolno-czu-project/src/main.py --db_host {DB_HOST} --db_name {DB_NAME} --db_user {DB_USER} --db_password {DB_PASSWORD}',
+    bash_command=f'/opt/airflow/envs/wolno-env/bin/python /opt/airflow/scripts/wolno-czu-project/src/main.py --db_host {WOLNO_HOST} --db_name {WOLNO_NAME} --db_user {WOLNO_USER} --db_password {WOLNO_PASSWORD}',
     retries=3,
     retry_delay=datetime.timedelta(seconds=180),
     dag=wolno_dag
