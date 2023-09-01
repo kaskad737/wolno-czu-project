@@ -18,7 +18,7 @@ WOLNO_PASSWORD = Variable.get('WOLNO_PASSWORD')
 wolno_dag = DAG(
     'Wolno',
     start_date=datetime.datetime(2023, 9, 1),
-    schedule_interval='0 12 * * *',
+    schedule_interval='*/5 * * * *',
     catchup = False
 )
 
